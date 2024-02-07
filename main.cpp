@@ -1,18 +1,17 @@
 #include "mbed.h"
-BufferedSerial      usb_pc(USBTX, USBRX);
-void usb_pc_ISR(void){
-    char rec_data_pc;
-    int rec_length = 0;
-    if(usb_pc.readable()){
-        rec_length = usb_pc.read(&rec_data_pc, 1);
-        usb_pc.write(&rec_data_pc, 1);
-        rec_data_pc = 'c';
-        usb_pc.write(&rec_data_pc, 1);
-    }
-}
+DigitalOut led1(LED1);
+UnbufferedSerial      my_pc(USBTX, USBRX);
+char data;
+void ISR_my_pc_reception(void);
 int main()
-{
-    usb_pc.set_baud(115200);
-    usb_pc.sigio(callback(usb_pc_ISR));
+{    
+    my_pc.baud(115200);
+    my_pc.attach(&ISR_my_pc_reception, UnbufferedSerial::RxIrq);
     while (true){}
+}
+void ISR_my_pc_reception(void){
+    my_pc.read(&data, 1);     // get the received byte
+    if(data == 'a'){    led1 = 1;   } 
+    if(data == 'e'){    led1 = 0;   }    
+    my_pc.write(&data, 1);    // echo of the byte received
 }

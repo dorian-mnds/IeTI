@@ -1,20 +1,26 @@
-import serial
+from serial import Serial
 import serial.tools.list_ports
+if __name__ == "__main__":
+    serial_port = serial.tools.list_ports.comports()
+    # To obtain the list of the communication ports
+    for port in serial_port:
+        print(f"{port.name} // {port.device} // D={port.description}")
+    # To select the port to use
+    selectPort = input("Select a COM port : ")
+    print(f"Port Selected : COM{selectPort}")
+    # To open the serial communication at a specific baudrate
+    # serNuc = Serial('COM'+str(selectPort), 115200)  # Under Windows only
+    serNuc = Serial(str(selectPort), 115200)  # Under Mac only
+    appOk = 1
+    while appOk:
+        data_to_send = input("Char to send : ")
+        if data_to_send == 'q' or data_to_send == 'Q':
+            appOk = 0
+        else:
+            serNuc.write(bytes(data_to_send, 'ascii'))
+            while serNuc.inWaiting() == 0:
+                pass
+            data_rec = serNuc.read(1)  # bytes
+            print(str(data_rec))
 
-serial_port = serial.tools.list_ports.comports()
-
-# Affiche les ports série conenctés à l'ordi
-for port in serial_port:
-    print(f"{port.name} // {port.device} // D={port.description}")
-
-# Premier argument: nom du device de l'affichage préccédent correspondant à la nucléo
-ser = serial.Serial("/dev/cu.usbmodem11303", baudrate=115200)
-
-# Sending a char to Nucleo Board
-ser.write(b'a')
-# Waiting for data sending by Nucleo board
-while(ser.in_waiting == 0):
-    print("Wait !")
-rec_data_nucleo = ser.readline(2)
-print(f'Rec = {rec_data_nucleo}')
-ser.close()
+    serNuc.close()
